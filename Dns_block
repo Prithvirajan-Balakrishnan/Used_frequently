@@ -1,1 +1,72 @@
-block
+#!/bin/bash
+
+#############################################
+# This script is to Insert a line "dns.block: domaincontrolerserver.com/domaincontrolerserver1.com" at the end of centrify conf file for internal domain servers which specified it on file /home/user1/servers.list....
+# Make sure you add only the COF servers on file /home/user1/servers.list as a input.....
+#############################################
+
+case $1 in
+        "domaincontrolerserver.com")
+         echo " "
+         echo "You have Typed:::    domaincontrolerserver.com"
+         echo " "
+         echo " "
+                 for i in `cat servers.list`
+                 do ssh $i dzdo -i "sed -i -e '$ a dns.block: domaincontrolerserver.com' /etc/centrifydc/centrifydc.conf"
+                  if [ $? -eq 0 ]
+                  then
+                   echo " "
+                   echo "Successfully added a line at /etc/centrifydc/centrifydc.conf"
+                   echo " "
+                  else
+                   echo "Failed to update the Centrify file"
+                  fi
+                   echo "Adclient is about to restart on $i"
+                dzdo /etc/init.d/centrifydc restart
+                 if [ $? -eq 0 ]
+                 then
+                   echo " "
+                  echo "Adclient was restarted successfully on $i"
+                   echo " "
+                 else
+                  echo "Adclient restart is failed on $i"
+                 fi
+                done
+        ;;
+        "domaincontrolerserver1.com")
+         echo "You have Typed:::    domaincontrolerserver1.com"
+                 for i in `cat servers.list`
+                 do ssh $i dzdo -i "sed -i -e '$ a dns.block: domaincontrolerserver1.com' /etc/centrifydc/centrifydc.conf"
+                  if [ $? -eq 0 ]
+                  then
+                   echo "Successfully added a line at /etc/centrifydc/centrifydc.conf"
+                  else
+                   echo "Failed to update the Centrify file"
+                  fi
+                   echo "Adclient is about to restart on $i"
+                dzdo /etc/init.d/centrifydc restart
+                 if [ $? -eq 0 ]
+                 then
+                  echo "Adclient was restarted successfully on $i"
+                 else
+                  echo "Adclient restart is failed on $i"
+                 fi
+                done
+        ;;
+        "dns.unblock")
+         echo "You have Typed:::    dns.unblock"
+
+                 for i in `cat servers.list`
+                 do ssh $i dzdo -i "sed -i '/dns.block: ngmpcof*/d' /etc/centrifydc/centrifydc.conf"
+                  if [ $? -eq 0 ]
+                  then
+                   echo "Successfully removed a dns.block at /etc/centrifydc/centrifydc.conf on server $i"
+                  else
+                   echo "failed to remove the dns.block on server $i"
+                  fi
+                 done
+        ;;
+        *)
+        echo "Failed as you have typed ""$1"" you must type either "domaincontrolerserver.com" or "domaincontrolerserver1.com""
+        ;;
+esac
