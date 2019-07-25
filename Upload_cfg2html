@@ -1,1 +1,24 @@
-upload
+#!/bin/sh
+
+# Work out the server hostname, and which Satellite we need to send it too.
+hname=$(grep HOSTNAME /etc/sysconfig/network | cut -d= -f2)
+satellite=satellite.domain.com
+rm -f /tmp/${hname}.html
+# Abort if we don't get any values
+if [[ "${satellite}" = "" || "${hname}" = "" ]]
+then
+  exit 1
+fi
+# Run the cfg2html command. Ignore cron jobs (-c) and dump the output into /tmp
+/usr/bin/cfg2html -o /tmp -c > /tmp/cfg2html.log
+if [ ! -f /tmp/${hname}.html ]
+then
+  exit 1
+fi
+# Now send the html file to the Satellite server, by getting curl to do a HTTP POST of it
+# The Perl script on there will then put it into the right location
+/usr/bin/curl -F cfg2html=@/tmp/${hname}.html "http://${satellite}/cgi-bin/upload_cfg2html.pl"
+if [ $? -ne 0 ]
+then
+  exit 1
+fi
